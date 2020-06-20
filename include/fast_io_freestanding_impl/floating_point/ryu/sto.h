@@ -118,6 +118,7 @@ inline constexpr F input_floating(It_First iter,It_Second ed)
 	mantissa_type m10{};
 	signed_exponent_type dot_index{-1};
 	exponent_type index{};
+	stack_arbitary_int<1024> buffer;//To change with long double
 	for(;iter!=ed&&m10digits!=floating_trait::digits10;++iter)
 	{
 		unsigned_char_type const ch(*iter-u8'0');
@@ -139,13 +140,18 @@ inline constexpr F input_floating(It_First iter,It_Second ed)
 				break;
 
 		}
+		
 		m10*=10;
 		if(m10+=ch)[[likely]]
+		{
 			++m10digits;
+			buffer.push_back_unchecked(ch);
+		}
 		++index;
 	}
 	std::size_t extra_e10{};
 	bool need_verify{};
+	bool non_zero_remain{};
 	if(m10digits==floating_trait::digits10)[[unlikely]]
 	{
 		bool find_decimal_point{};
@@ -159,19 +165,62 @@ inline constexpr F input_floating(It_First iter,It_Second ed)
 				find_decimal_point=true;
 			}
 		}
-		for(;iter!=ed&&*iter==u8'0';++iter);
+		std::size_t zero{0};
+		for(;iter!=ed&&*iter==u8'0';++iter)
+			++zero;
 		if(iter!=ed&&static_cast<unsigned_char_type>(*iter-u8'1')<9)[[unlikely]]
 		{
 			need_verify=true;
+			std::size_t t_m10e{extra_e10+m10digits+zero};
+			if(floating_trait::required_buffer_size<t_m10e)
+			{
+				buffer.final_zeros();
+				non_zero_remain=true;
+			}
+			else
+			{
+//				::debug_println(extra_e10+zero);
+				buffer.fillnz(extra_e10+zero);
+			}
 			if(dot_index==-1&&!find_decimal_point)
 			{
-				for(;iter!=ed&&static_cast<unsigned_char_type>(*iter-u8'0')<10;++iter)
+				for(;iter!=ed&&!buffer.full();++iter)
+				{
+					unsigned_char_type const ch(*iter-u8'0');
+					if(9<ch)[[unlikely]]
+						break;
+					buffer.push_back_unchecked(ch);
 					++extra_e10;
+				}
+				if(buffer.full())[[unlikely]]
+				{
+					for(;iter!=ed;++iter)
+					{
+						unsigned_char_type const ch(*iter-u8'0');
+						if(9<ch)[[unlikely]]
+							break;
+						++extra_e10;
+						non_zero_remain|=ch;
+					}
+				}
 				if(iter!=ed&&*iter==decimal_point)
 					++iter;
 			}
-			for(;iter!=ed&&static_cast<unsigned_char_type>(*iter-u8'0')<10;++iter)
-				;//should store data;
+			for(;iter!=ed&&!buffer.full();++iter)
+			{
+				unsigned_char_type const ch(*iter-u8'0');
+				if(9<ch)[[unlikely]]
+					break;
+				buffer.push_back_unchecked(ch);
+			}
+			if(buffer.full())
+				for(;iter!=ed;++iter)
+				{
+					unsigned_char_type const ch(*iter-u8'0');
+					if(9<ch)[[unlikely]]
+						break;
+					non_zero_remain|=ch;
+				}
 		}
 	}
 	signed_exponent_type e_index{-1};
@@ -222,15 +271,80 @@ inline constexpr F input_floating(It_First iter,It_Second ed)
 	auto fl{me10_to_me2<F>(m10,ue10,m10digits,dot_index,e_index,index,exp_negative)};
 	if(need_verify)[[unlikely]]
 	{
-		
 		auto cl{me10_to_me2<F>(m10+1,ue10,m10digits,dot_index,e_index,index,exp_negative)};
-
-//		::debug_println("fl=",fl," cl=",cl);
-
 		if(fl==cl)
 			return bit_cast<F>(((static_cast<mantissa_type>(negative)) << (real_bits-1))|fl);
 		else
-			throw fast_io_text_error("ryu to do with multiprecision");
+		{
+			if constexpr(std::same_as<double,floating_type>)
+			{
+				stack_arbitary_int<1024> fl_buffer;
+				fl_buffer.position=precise<floating_type>(fl,fl_buffer.data())-fl_buffer.data();
+				stack_arbitary_int<1024> cl_buffer;
+				cl_buffer.position=precise<floating_type>(cl,cl_buffer.data())-cl_buffer.data();
+//				::debug_println("before:\ncl_buffer (LARGER):",cl_buffer,"\nbuffer:",buffer,"\nfl_buffer (SMALLER):",fl_buffer);
+				std::size_t cl_buffer_size{cl_buffer.size()};
+				bool const roundup{cl_buffer.digits.front()==1&&fl_buffer.digits.front()==9};
+				if(roundup)
+					--cl_buffer_size;
+				std::size_t larger_buffer_size;
+				if(cl_buffer_size<fl_buffer.size())
+				{
+					larger_buffer_size=fl_buffer.size();
+					memset(cl_buffer.data()+cl_buffer.size(),0,fl_buffer.size()-cl_buffer_size);
+					cl_buffer.position+=fl_buffer.size()-cl_buffer_size;
+				}
+				else
+				{
+					larger_buffer_size=cl_buffer_size;
+					memset(fl_buffer.data()+fl_buffer.size(),0,cl_buffer_size-fl_buffer.size());
+					fl_buffer.position+=cl_buffer_size-fl_buffer.size();
+				}
+				if(larger_buffer_size<buffer.size())
+				{
+					if(!non_zero_remain)
+					{
+						std::size_t i{larger_buffer_size};
+						for(;i!=buffer.size();++i)
+							if(buffer.digits[i])
+							{
+								non_zero_remain=true;
+								break;
+							}
+					}
+					buffer.position=larger_buffer_size;
+				}
+				else
+				{
+					std::size_t const to_set{larger_buffer_size-buffer.size()};
+					memset(buffer.data()+buffer.size(),0,to_set);
+					buffer.position+=to_set;
+				}
+//				::debug_println("\n\nafter:\ncl_buffer (LARGER):",cl_buffer,"\nbuffer:",buffer,"\nfl_buffer (SMALLER):",fl_buffer);
+
+				if(!fake_minus_assignment(cl_buffer,buffer))
+					return bit_cast<F>(((static_cast<mantissa_type>(negative)) << (real_bits-1)) | cl);
+				if(!fake_minus_assignment(buffer,fl_buffer))
+					return bit_cast<F>(((static_cast<mantissa_type>(negative)) << (real_bits-1)) | fl);
+//				::debug_println("\n\nafter:\ncl_buffer (LARGER):",cl_buffer,"\nbuffer:",buffer,"\nfl_buffer (SMALLER):",fl_buffer);
+				int res{memcmp(cl_buffer.data()+roundup,buffer.data(),larger_buffer_size)};
+//				::debug_println("res=",res);
+				if(res<0)
+					return bit_cast<F>(((static_cast<mantissa_type>(negative)) << (real_bits-1)) | cl);
+				else if(0<res)
+					return bit_cast<F>(((static_cast<mantissa_type>(negative)) << (real_bits-1)) | fl);
+				else
+				{
+					if(non_zero_remain||fl&1)
+						return bit_cast<F>(((static_cast<mantissa_type>(negative)) << (real_bits-1)) | cl);
+					return bit_cast<F>(((static_cast<mantissa_type>(negative)) << (real_bits-1)) | fl);
+				}
+			}
+			else
+			{
+				throw fast_io_text_error("ryu to do with multiprecisions");
+			}
+		}
 	}
 	else
 		return bit_cast<F>(((static_cast<mantissa_type>(negative)) << (real_bits-1)) | fl);
