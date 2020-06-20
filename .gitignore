@@ -3,3 +3,6 @@ benchmarks/*/*.txt
 */build/*
 !.cc
 *.app
+.vs
+CMakeSettings.json
+*/isenseconfig/*
