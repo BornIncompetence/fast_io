@@ -4,5 +4,8 @@ benchmarks/*/*.txt
 !.cc
 *.app
 .vs
+.vscode
 CMakeSettings.json
 */isenseconfig/*
+build
+out
