@@ -20,15 +20,14 @@ function(fast_target FAST_NAME FAST_PATH)
 	if(fmt_FOUND)
 		target_compile_definitions(${FAST_NAME} PUBLIC FAST_IO_TEST_FMT)
 		target_link_libraries(${FAST_NAME} PRIVATE fmt::fmt)
-	else()
-		message(STATUS "fmt not found here")
 	endif()
 
 	# Set C++ standard and compiler flags per target
 	target_compile_features(${FAST_NAME} PRIVATE cxx_std_20)
 	target_compile_options(${FAST_NAME} PRIVATE
-		$<$<CXX_COMPILER_ID:GNU>: -ffast-math -Wall -Wextra -maes -msse2 -msha>
-		$<$<CXX_COMPILER_ID:Clang>: -Xclang -ffast-math -ffast-math -maes -msse2 -msha>
+		$<$<AND:$<CONFIG:RELEASE>,$<CXX_COMPILER_ID:GNU>>: -s>
+		$<$<CXX_COMPILER_ID:GNU>: -ffast-math -maes -msse2 -msha -Wall -Wextra>
+		$<$<CXX_COMPILER_ID:Clang>: -ffast-math -maes -msse2 -msha -Xclang>
 	)
 endfunction(fast_target)
 

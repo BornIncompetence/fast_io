@@ -13,8 +13,9 @@ function(fast_target FAST_NAME FAST_PATH)
 	set_target_properties(${FAST_NAME} PROPERTIES CXX_EXTENSIONS NO)
 	target_compile_features(${FAST_NAME} PRIVATE cxx_std_20)
 	target_compile_options(${FAST_NAME} PRIVATE
-		$<$<CXX_COMPILER_ID:GNU>: -ffast-math -Wall -Wextra -pedantic -s>
-		$<$<CXX_COMPILER_ID:Clang>: -Xclang -ffast-math>
+		$<$<AND:$<CONFIG:RELEASE>,$<CXX_COMPILER_ID:GNU>>: -s>
+		$<$<CXX_COMPILER_ID:GNU>: -ffast-math -Wall -Wextra>
+		$<$<CXX_COMPILER_ID:Clang>: -ffast-math -Xclang>
 	)
 	target_link_libraries(${FAST_NAME} fast_io)
 endfunction(fast_target)
