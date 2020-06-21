@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 project(fast_io)
 
 add_subdirectory(examples)
-# add_subdirectory(benchmarks)
+add_subdirectory(benchmarks)
 
 # I'm not sure exactly if INTERFACE is correct, but it allows me to see the library targets for now
 add_library(fast_io INTERFACE)
