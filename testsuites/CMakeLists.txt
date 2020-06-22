@@ -1,22 +1,23 @@
 cmake_minimum_required(VERSION 3.15)
 project(fastio_examples)
 find_package(Threceive)
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  # using Visual Studio C++
-add_definitions(/experimental:concepts)
-#if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10)
-message(FATAL_ERROR "fast_io no longer supports GCC < 10 version because of incomplete C++ standard library support for concepts lite. Please build the master version of GCC from its official or mirror repo. Or use Visual Studio Preview")
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10)
+		message(FATAL_ERROR "fast_io no longer supports GCC < 10 version because of incomplete C++ standard library support for concepts lite. Please build the master version of GCC from its official or mirror repo. Or use Visual Studio Preview")
+	endif()
 endif()
 
-add_definitions(-ffast-math -Wall -Wextra -s)
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-add_definitions(-Xclang -fconcepts-ts -ffast-math -s)
-endif()
+function(fast_target FAST_NAME FAST_PATH)
+	add_executable(${FAST_NAME} ${FAST_PATH} ${ARGN})
+	set_target_properties(${FAST_NAME} PROPERTIES CXX_EXTENSIONS NO)
+	target_compile_features(${FAST_NAME} PRIVATE cxx_std_20)
+	target_compile_options(${FAST_NAME} PRIVATE
+		$<$<AND:$<CONFIG:RELEASE>,$<CXX_COMPILER_ID:GNU>>: -s>
+		$<$<CXX_COMPILER_ID:GNU>: -ffast-math -Wall -Wextra>
+		$<$<CXX_COMPILER_ID:Clang>: -ffast-math -Xclang>
+	)
+	target_link_libraries(${FAST_NAME} fast_io)
+endfunction(fast_target)
 
-set(CMAKE_CXX_STANDARD 20)
-
-add_executable(ebcdic 0000.transforms/ebcdic.cc)
+fast_target(ebcdic "0000.transforms/ebcdic.cc")
