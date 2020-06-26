@@ -276,6 +276,7 @@ inline constexpr F input_floating(It_First iter,It_Second ed)
 			return bit_cast<F>(((static_cast<mantissa_type>(negative)) << (real_bits-1))|fl);
 		else
 		{
+
 			if constexpr(std::same_as<double,floating_type>)
 			{
 				stack_arbitary_int<1024> fl_buffer;
