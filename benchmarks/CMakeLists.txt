@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
-project(fastio_examples)
+
+# project(fast_io_benchmarks)
+set(CMAKE_FOLDER "benchmarks")
+
 find_package(Threceive)
 find_package(fmt)
 

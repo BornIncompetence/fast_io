@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(fast_io)
+project(fast_io CXX)
 
 add_subdirectory(examples)
 add_subdirectory(benchmarks)

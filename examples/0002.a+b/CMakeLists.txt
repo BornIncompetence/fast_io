@@ -1,0 +1,15 @@
+set(current_dir 0002.a+b)
+
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
+
+example_target(${current_dir} base36)
+example_target(${current_dir} base36upper)
+example_target(${current_dir} base36upper_sgn)
+example_target(${current_dir} bin)
+example_target(${current_dir} dec)
+example_target(${current_dir} dectext)
+example_target(${current_dir} floating)
+example_target(${current_dir} hex)
+example_target(${current_dir} hexupper)
+example_target(${current_dir} sgn)
+example_target(${current_dir} string)
