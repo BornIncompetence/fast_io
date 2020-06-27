@@ -1,0 +1,15 @@
+set(current_dir legacy)
+
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
+
+benchmark_nested_target(0000.10m_size_t ${current_dir} input_10M_size_t)
+benchmark_nested_target(0000.10m_size_t ${current_dir} input_10M_size_t_charconv)
+benchmark_nested_target(0000.10m_size_t ${current_dir} input_legacy)
+benchmark_nested_target(0000.10m_size_t ${current_dir} legacy)
+benchmark_nested_target(0000.10m_size_t ${current_dir} no_teststd_output_10M_size_t)
+benchmark_nested_target(0000.10m_size_t ${current_dir} omap)
+benchmark_nested_target(0000.10m_size_t ${current_dir} output_10M_size_t)
+benchmark_nested_target(0000.10m_size_t ${current_dir} output_10M_size_t_rdm)
+benchmark_nested_target(0000.10m_size_t ${current_dir} simin)
+benchmark_nested_target(0000.10m_size_t ${current_dir} simple)
+benchmark_nested_target(0000.10m_size_t ${current_dir} win32_vs_posix_vs_c_file)

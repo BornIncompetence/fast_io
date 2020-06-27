@@ -1,5 +1,6 @@
 *.exe
 benchmarks/*/*.txt
+!benchmarks/*/CMakeLists.txt
 */build/*
 !.cc
 *.app
