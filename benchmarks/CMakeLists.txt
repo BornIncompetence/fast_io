@@ -56,7 +56,7 @@ endfunction(benchmark_nested_nested_target)
 # fast_target(output_10M_double "./0001.10m_double/output_10M_double.cc")
 
 # TODO: FIX compilation errors
-add_subdirectory(0000.10m_size_t)
+# add_subdirectory(0000.10m_size_t)
 # add_subdirectory(0001.10m_double)
 # add_subdirectory(0002.transmit)
 # add_subdirectory(0003.async_tcp_echo_server)
@@ -78,4 +78,3 @@ add_subdirectory(0000.10m_size_t)
 # add_subdirectory(0019.text)
 # add_subdirectory(0020.utf)
 # add_subdirectory(0021.iconv)
-# add_subdirectory(0022.rust_vs_fast_io)
