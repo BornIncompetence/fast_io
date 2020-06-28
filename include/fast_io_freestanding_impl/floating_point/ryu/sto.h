@@ -9,7 +9,6 @@ inline constexpr typename floating_traits<floating_type>::mantissa_type me10_to_
 	using floating_trait = floating_traits<floating_type>;
 	using mantissa_type = typename floating_trait::mantissa_type;
 	using exponent_type = typename floating_trait::exponent_type;
-	using signed_exponent_type = std::make_signed_t<exponent_type>;
 	constexpr exponent_type real_bits{floating_trait::exponent_bits+floating_trait::mantissa_bits+1};
 	std::int32_t e10(static_cast<std::int32_t>(ue10));
 	if(exp_negative)
@@ -55,7 +54,7 @@ inline constexpr typename floating_traits<floating_type>::mantissa_type me10_to_
 	std::int32_t ieee_e2(e2 + (floating_trait::bias-1) + std::bit_width(m2));
 	if(ieee_e2<0)
 		ieee_e2=0;
-	if(maximum_representable_e2<=ieee_e2)[[unlikely]]
+	if(static_cast<std::int32_t>(maximum_representable_e2)<=ieee_e2)[[unlikely]]
 	{
 		return static_cast<mantissa_type>(static_cast<mantissa_type>(maximum_representable_e2) << floating_trait::mantissa_bits);
 	}
