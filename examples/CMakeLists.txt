@@ -3,8 +3,6 @@ cmake_minimum_required(VERSION 3.15)
 # project(fast_io_examples)
 set(CMAKE_FOLDER "examples")
 
-find_package(Threceive)
-
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 	if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10)
 		message(FATAL_ERROR "fast_io no longer supports GCC < 10 version because of incomplete C++ standard library support for concepts lite. Please build the master version of GCC from its official or mirror repo. Or use Visual Studio Preview")
@@ -13,8 +11,11 @@ endif()
 
 function(example_target FOLDER_NUMBER SOURCE_NAME)
 	set(this_target "example_${FOLDER_NUMBER}_${SOURCE_NAME}")
+
 	add_executable(${this_target} "${SOURCE_NAME}.cc" ${ARGN})
+
 	set_target_properties(${this_target} PROPERTIES CXX_EXTENSIONS NO)
+
 	target_compile_features(${this_target} PRIVATE cxx_std_20)
 	target_compile_options(${this_target} PRIVATE
 		$<$<AND:$<CONFIG:RELEASE>,$<CXX_COMPILER_ID:GNU>>: -s>
