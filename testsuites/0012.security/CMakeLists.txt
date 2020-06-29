@@ -1,6 +1,4 @@
-set(current_dir 0012.security)
-
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/0012.security")
 
 add_subdirectory(4.1.0.format_wrong_call)
 add_subdirectory(4.1.1.format_tainted_argument)

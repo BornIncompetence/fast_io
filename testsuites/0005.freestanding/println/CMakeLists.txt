@@ -1,5 +1,5 @@
-set(current_dir println)
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/println")
 
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
-
-test_nested_target(0005.freestanding ${current_dir} helloworld_linux)
+test_target(0005.println helloworld_linux)
+test_target(0005.println helloworld_linux_writev)
+test_target(0005.println helloworld_linux_writev_floating_point)

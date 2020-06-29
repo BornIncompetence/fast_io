@@ -1,5 +1,3 @@
-set(current_dir 0003.hash)
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/0003.hash")
 
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
-
-test_target(${current_dir} sha1)
+test_target(0003 sha1)

@@ -1,6 +1,4 @@
-set(current_dir 0015.interpositioning)
-
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/0015.interpositioning")
 
 add_subdirectory(compile_time)
 add_subdirectory(example_program)

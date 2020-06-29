@@ -1,7 +1,5 @@
-set(current_dir 0002.crypto)
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/0002.crypto")
 
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
-
-test_target(${current_dir} cbc)
-test_target(${current_dir} ctr)
-test_target(${current_dir} ecb)
+test_target(0002 cbc)
+test_target(0002 ctr)
+test_target(0002 ecb)
