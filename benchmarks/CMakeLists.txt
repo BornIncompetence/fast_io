@@ -34,19 +34,19 @@ function(make_target TARGET_NAME SOURCE_DIR)
 endfunction(make_target)
 
 function(benchmark_target FOLDER_NUMBER SOURCE_NAME)
-	set(this_target "benchmark_${FOLDER_NUMBER}_${SOURCE_NAME}")
+	set(this_target "${FOLDER_NUMBER}.${SOURCE_NAME}")
 	make_target(${this_target} "${SOURCE_NAME}.cc" ${ARGN})
 endfunction(benchmark_target)
 
-function(benchmark_nested_target FOLDER_NUMBER INNER_FOLDER SOURCE_NAME)
-	set(this_target "benchmark_${FOLDER_NUMBER}_${INNER_FOLDER}_${SOURCE_NAME}")
-	make_target(${this_target} "${INNER_FOLDER}/${SOURCE_NAME}.cc" ${ARGN})
-endfunction(benchmark_nested_target)
-
-function(benchmark_nested_nested_target FOLDER_NUMBER INNER_FOLDER_1 INNER_FOLDER_2 SOURCE_NAME)
-	set(this_target "benchmark_${FOLDER_NUMBER}_${INNER_FOLDER_1}_${INNER_FOLDER_2}_${SOURCE_NAME}")
-	make_target(${this_target} "${INNER_FOLDER_1}/${INNER_FOLDER_2}/${SOURCE_NAME}.cc" ${ARGN})
-endfunction(benchmark_nested_nested_target)
+# function(benchmark_nested_target FOLDER_NUMBER INNER_FOLDER SOURCE_NAME)
+# 	set(this_target "${FOLDER_NUMBER}_${INNER_FOLDER}_${SOURCE_NAME}")
+# 	make_target(${this_target} "${INNER_FOLDER}/${SOURCE_NAME}.cc" ${ARGN})
+# endfunction(benchmark_nested_target)
+# 
+# function(benchmark_nested_nested_target FOLDER_NUMBER INNER_FOLDER_1 INNER_FOLDER_2 SOURCE_NAME)
+# 	set(this_target "benchmark_${FOLDER_NUMBER}_${INNER_FOLDER_1}_${INNER_FOLDER_2}_${SOURCE_NAME}")
+# 	make_target(${this_target} "${INNER_FOLDER_1}/${INNER_FOLDER_2}/${SOURCE_NAME}.cc" ${ARGN})
+# endfunction(benchmark_nested_nested_target)
 
 # fast_target(output_10M_size_t "./0000.10m_size_t/legacy/output_10M_size_t.cc")
 # if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -56,7 +56,7 @@ endfunction(benchmark_nested_nested_target)
 
 # TODO: FIX compilation errors
 # add_subdirectory(0000.10m_size_t)
-# add_subdirectory(0001.10m_double)
+add_subdirectory(0001.10m_double)
 # add_subdirectory(0002.transmit)
 # add_subdirectory(0003.async_tcp_echo_server)
 # add_subdirectory(0004.benchmark_provides_by_other_people)

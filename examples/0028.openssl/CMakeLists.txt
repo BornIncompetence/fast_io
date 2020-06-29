@@ -1,4 +1,5 @@
-set(current_dir 0028.openssl)
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/0028.openssl")
 
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
-
+add_subdirectory(bio)
+add_subdirectory(hash)
+add_subdirectory(https)

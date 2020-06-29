@@ -1,9 +1,9 @@
 set(current_dir 0001.helloworld)
 
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/0001.helloworld")
 
-example_target(${current_dir} four)
-example_target(${current_dir} hello_world_win32_box)
-example_target(${current_dir} hw)
-example_target(${current_dir} hw_long)
-example_target(${current_dir} hw_u8)
+if (WIN32)
+	example_target(0001 hello_world_win32_box)
+endif(WIN32)
+example_target(0001 hw)
+example_target(0001 hw_u8)

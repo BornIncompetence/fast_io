@@ -1,4 +1,5 @@
-set(current_dir 0026.custom_device)
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/0026.custom_device")
 
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
-
+if (WIN32)
+	add_subdirectory(win32_internet)
+endif(WIN32)

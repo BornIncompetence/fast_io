@@ -1,6 +1,4 @@
-set(current_dir 0012.debug)
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/0012.debug")
 
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
-
-example_target(${current_dir} debug_box)
-example_target(${current_dir} debug_helloworld)
+example_target(0012 debug_box)
+example_target(0012 debug_helloworld)

@@ -1,6 +1,4 @@
-set(current_dir general)
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/general")
 
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
-
-benchmark_nested_target(0001.10m_double ${current_dir} obuf)
-benchmark_nested_target(0001.10m_double ${current_dir} parallel)
+benchmark_target(0001.general obuf)
+benchmark_target(0001.general parallel)

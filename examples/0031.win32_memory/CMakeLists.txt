@@ -1,9 +1,7 @@
-set(current_dir 0031.win32_memory)
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/0031.win32_memory")
 
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
-
-example_target(${current_dir} find_block)
-example_target(${current_dir} process_memory_reader)
-example_target(${current_dir} process_memory_reader_window)
-example_target(${current_dir} rw)
-example_target(${current_dir} target_process)
+example_target(0031 find_block)
+example_target(0031 process_memory_reader)
+example_target(0031 process_memory_reader_window)
+example_target(0031 rw)
+example_target(0031 target_process)

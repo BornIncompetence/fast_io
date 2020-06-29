@@ -1,6 +1,4 @@
-set(current_dir strings)
-
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/strings")
 
 add_subdirectory(size_t)
 add_subdirectory(size_t_random)

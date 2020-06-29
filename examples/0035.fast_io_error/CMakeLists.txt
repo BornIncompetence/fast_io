@@ -1,5 +1,3 @@
-set(current_dir 0035.fast_io_error)
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/0035.fast_io_error")
 
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
-
-example_target(${current_dir} error)
+example_target(0035 error)

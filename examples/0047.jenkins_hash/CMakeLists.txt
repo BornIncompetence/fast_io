@@ -1,5 +1,3 @@
-set(current_dir 0047.jenkins_hash)
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/0047.jenkins_hash")
 
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
-
-example_target(${current_dir} hash)
+example_target(0047 hash)

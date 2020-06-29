@@ -1,8 +1,6 @@
-set(current_dir very_long_repeat)
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/very_long_repeat")
 
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
-
-benchmark_nested_target(0001.10m_double ${current_dir} fscanf)
-benchmark_nested_target(0001.10m_double ${current_dir} ibuf_file)
-benchmark_nested_target(0001.10m_double ${current_dir} ifstream)
-benchmark_nested_target(0001.10m_double ${current_dir} repeat)
+benchmark_target(0001.very_long_repeat fscanf)
+benchmark_target(0001.very_long_repeat ibuf_file)
+benchmark_target(0001.very_long_repeat ifstream)
+benchmark_target(0001.very_long_repeat repeat)

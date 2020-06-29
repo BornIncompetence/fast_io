@@ -1,9 +1,7 @@
-set(current_dir uint32)
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/uint32")
 
-set(CMAKE_FOLDER "${CMAKE_FOLDER}/${current_dir}")
-
-benchmark_nested_nested_target(0000.10m_size_t strings ${current_dir} concat)
-benchmark_nested_nested_target(0000.10m_size_t strings ${current_dir} fmtformat_int)
-benchmark_nested_nested_target(0000.10m_size_t strings ${current_dir} ospan)
-benchmark_nested_nested_target(0000.10m_size_t strings ${current_dir} sm)
-benchmark_nested_nested_target(0000.10m_size_t strings ${current_dir} to)
+benchmark_target(0000.strings.uint32 concat)
+benchmark_target(0000.strings.uint32 fmtformat_int)
+benchmark_target(0000.strings.uint32 ospan)
+benchmark_target(0000.strings.uint32 sm)
+benchmark_target(0000.strings.uint32 to)
