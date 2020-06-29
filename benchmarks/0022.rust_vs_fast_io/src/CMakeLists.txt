@@ -1,0 +1,2 @@
+set(CMAKE_FOLDER "${CMAKE_FOLDER}/src")
+

@@ -12,7 +12,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 
 function(make_target TARGET_NAME SOURCE_DIR)
-	add_executable(${TARGET_NAME} ${SOURCE_NAME} ${ARGN})
+	add_executable(${TARGET_NAME} ${SOURCE_NAME})
 	target_link_libraries(${TARGET_NAME} PRIVATE fast_io)
 	
 	# No std=gnu++2a or else it won't compile
@@ -34,28 +34,11 @@ function(make_target TARGET_NAME SOURCE_DIR)
 endfunction(make_target)
 
 function(benchmark_target FOLDER_NUMBER SOURCE_NAME)
-	set(this_target "${FOLDER_NUMBER}.${SOURCE_NAME}")
-	make_target(${this_target} "${SOURCE_NAME}.cc" ${ARGN})
+	make_target("${FOLDER_NUMBER}.${SOURCE_NAME}" "${SOURCE_NAME}.cc")
 endfunction(benchmark_target)
 
-# function(benchmark_nested_target FOLDER_NUMBER INNER_FOLDER SOURCE_NAME)
-# 	set(this_target "${FOLDER_NUMBER}_${INNER_FOLDER}_${SOURCE_NAME}")
-# 	make_target(${this_target} "${INNER_FOLDER}/${SOURCE_NAME}.cc" ${ARGN})
-# endfunction(benchmark_nested_target)
-# 
-# function(benchmark_nested_nested_target FOLDER_NUMBER INNER_FOLDER_1 INNER_FOLDER_2 SOURCE_NAME)
-# 	set(this_target "benchmark_${FOLDER_NUMBER}_${INNER_FOLDER_1}_${INNER_FOLDER_2}_${SOURCE_NAME}")
-# 	make_target(${this_target} "${INNER_FOLDER_1}/${INNER_FOLDER_2}/${SOURCE_NAME}.cc" ${ARGN})
-# endfunction(benchmark_nested_nested_target)
-
-# fast_target(output_10M_size_t "./0000.10m_size_t/legacy/output_10M_size_t.cc")
-# if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-# 	fast_target(tenm_size_t "./0000.10m_size_t/with_crypto/tenm_size_t.cc")
-# endif()
-# fast_target(output_10M_double "./0001.10m_double/output_10M_double.cc")
-
 # TODO: FIX compilation errors
-# add_subdirectory(0000.10m_size_t)
+add_subdirectory(0000.10m_size_t)
 add_subdirectory(0001.10m_double)
 # add_subdirectory(0002.transmit)
 # add_subdirectory(0003.async_tcp_echo_server)
@@ -77,3 +60,5 @@ add_subdirectory(0001.10m_double)
 # add_subdirectory(0019.text)
 # add_subdirectory(0020.utf)
 # add_subdirectory(0021.iconv)
+# add_subdirectory(0023.constant)
+# add_subdirectory(0024.pointer_value)
