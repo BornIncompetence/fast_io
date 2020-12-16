@@ -24,6 +24,12 @@ public:
 	{
 		return handle;
 	}
+	inline constexpr native_handle_type release() noexcept
+	{
+		auto temp{handle};
+		handle=nullptr;
+		return temp;
+	}
 };
 template<typename T,std::integral ch_type,std::contiguous_iterator Iter>
 inline Iter read(basic_socket_io_observer<T,ch_type> iob,Iter begin,Iter end)

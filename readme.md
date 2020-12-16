@@ -2,6 +2,13 @@
 
 fast_io is a new C++20 library for extremely fast input/output and aims to replace iostream and cstdio. It is header-only (module only in the future) for easy inclusion in your project. It requires a capable C++20 compiler supporting concepts.
 
+## Discord URL.
+
+You can directly ask me questions in Discord.
+
+https://discord.gg/wYfh8kk
+
+
 ## What does "fast" mean in fast_io?
 
 It does not necessary mean it will be faster than everything else. (Or it would be named as fastest_io. Of course those fmt trolls would claim that.) It means it is significantly faster than stdio.h and iostream for all cases. fast means faster than stdio.h and iostream.
@@ -17,6 +24,17 @@ int main()
 }
 ```
 
+## Examples
+https://github.com/expnkx/fast_io_examples
+
+Deprecated examples are in
+https://bitbucket.org/ejsvifq_mabmip/fast_io_deprecated
+
+However, they might not work current fast_io since fast_io keeps changing.
+
+This i18n repo stores the i18n source files.
+https://bitbucket.org/ejsvifq_mabmip/fast_io_i18n
+
 ## Compiler Support
 - GCC 11.
 You can download the latest GCC compiler for windows here. https://bitbucket.org/ejsvifq_mabmip/mingw-gcc/src/master/ 
@@ -29,6 +47,8 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - Windows
 - Linux
 - BSD platforms (Including FreeBSD, NetBSD, OpenBSD and Mac)
+- Microsoft DOS
+- Barebone (No any operating system.)
 - Todo: Webassembly
 
 ## Supported libc FILE* hacks platforms
@@ -37,12 +57,18 @@ For Linux, you can watch this video to help you install the latest GCC easily. h
 - Universal CRT
 - BSD libc
 - MUSL libc
-- To do: Bionic
+- MSDOS CRT
+- Newlib (Compilation success. Luckily newlib shares the same code as BSD libc. However, we still need to test on a bare bone operating system.)
+- To do (before we supported them, they will be emulated with POSIX apis):
+- Bionic
 
 ## Supported C++ standard library std::streambuf/std::filebuf hacks platforms
 - GCC libstdc++
 - LLVM libc++
 - MSVC STL
+
+## Special Support
+- LLVM Address Sanitizer
 
 ## Design Goal
 
@@ -50,6 +76,7 @@ A general purpose I/O library to replace stdio.h and iostream
 
 - As close to system call as possible.
 - No default locale. It is optional.
+- To do. Correctly deal with EBCDIC exec-charset (where no libc correctly deals it).
 
 ### Safe
 
@@ -58,6 +85,8 @@ A general purpose I/O library to replace stdio.h and iostream
 - Providing RAII for C FILE\*&POSIX fd&win32 HANDLE
 - No dual error reporting mechanism. Exception as the ONLY error reporting mechanism.
 - No std::error_code and std::system_error
+- No useless bounds checking
+- Addresss Sanitizer special code for protecting memory safety issues.
 
 ### Easy to use
 
@@ -81,7 +110,6 @@ A general purpose I/O library to replace stdio.h and iostream
 - Dynamic Type Support
 - Multi Process
 - Memory map
-- Cryptography (Under construction) to replace openssl
 - debugging IO
 - GUI debugging IO
 - Freestanding mode
@@ -90,6 +118,7 @@ A general purpose I/O library to replace stdio.h and iostream
 - Intrinsic SHA-1, Intrinsic HMAC-SHA1, Intrinsic SHA-256, Intrinsic HMAC-SHA256, SHA-512, HMAC-SHA512
 - zlib compression/decompression support
 - Non crypto hash algorithms support. Jenkins Hash
+- Filesystem
 
 ## Post C++20 Plan
   1. Module support
@@ -354,3 +383,6 @@ This project is made possible by referencing from other open-source projects. (I
 |UTF-utils| https://github.com/BobSteagall/utf_utils|
 |jenkins-hash-java|https://github.com/vkandy/jenkins-hash-java |
 |md5|https://github.com/JieweiWei/md5 |
+|ReactOS|https://github.com/reactos/reactos |
+|dirent_h|https://github.com/win32ports/dirent_h|
+|GNU C library|https://www.gnu.org/software/libc/|

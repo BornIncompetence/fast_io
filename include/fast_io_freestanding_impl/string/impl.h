@@ -11,3 +11,19 @@
 #endif
 
 #include"ostring_ref.h"
+
+namespace fast_io
+{
+template<std::integral char_type>
+inline constexpr basic_io_scatter_t<char_type> print_alias_define(io_alias_t,std::basic_string<char_type> const& str)
+{
+	return {str.data(),str.size()};
+}
+
+template<std::integral char_type>
+inline constexpr manip::code_cvt<basic_io_scatter_t<char_type>> code_cvt(std::basic_string<char_type> const& str) noexcept
+{
+	return {{str.data(),str.size()}};
+}
+
+}

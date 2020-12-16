@@ -4,9 +4,6 @@
 
 namespace fast_io::sock::details
 {
-namespace
-{
-
 
 inline fast_io::details::win32_library const ws2_32_dll(L"ws2_32.dll");
 
@@ -23,26 +20,22 @@ inline auto get_proc_address(char const* proc)
 {
 	auto address(::GetProcAddress(ws2_32_dll.get(),proc));
 	if(address==nullptr)
-#ifdef __cpp_exceptions
-		throw win32_error();
-#else
-		fast_terminate();
-#endif
+		throw_win32_error();
 	return bit_cast<prototype>(address);
 }
 
-inline auto get_last_error(get_proc_address<int(*)()>("WSAGetLastError"));
+inline auto get_last_error()
+{
+	auto func{get_proc_address<int(*)()>("WSAGetLastError")};
+	return func();
+}
 
 template<typename prototype>
 inline auto get_proc_address_mswsock(char const* proc)
 {
 	auto address(::GetProcAddress(mswsock_dll.get(),proc));
 	if(address==nullptr)
-#ifdef __cpp_exceptions
-		throw win32_error();
-#else
-		fast_terminate();
-#endif
+		throw_win32_error();
 	return bit_cast<prototype>(address);
 }
 
@@ -51,11 +44,7 @@ inline auto call_win32_ws2_32(char const *name,Args&& ...args)
 {
 	auto ret(get_proc_address<prototype>(name)(std::forward<Args>(args)...));
 	if(ret==-1)
-#ifdef __cpp_exceptions
-		throw win32_error(get_last_error());
-#else
-		fast_terminate();
-#endif
+		throw_win32_error(get_last_error());
 	return ret;
 }
 
@@ -64,11 +53,7 @@ inline auto call_win32_ws2_32_invalid_socket(char const *name,Args&& ...args)
 {
 	auto ret(get_proc_address<prototype>(name)(std::forward<Args>(args)...));
 	if(ret==invalid_socket)
-#ifdef __cpp_exceptions
-		throw win32_error(get_last_error());
-#else
-		fast_terminate();
-#endif
+		throw_win32_error(get_last_error());
 	return ret;
 }
 
@@ -77,11 +62,7 @@ inline auto call_win32_ws2_32_minus_one(char const *name,Args&& ...args)
 {
 	auto ret(get_proc_address<prototype>(name)(std::forward<Args>(args)...));
 	if(ret==-1)
-#ifdef __cpp_exceptions
-		throw win32_error(get_last_error());
-#else
-		fast_terminate();
-#endif
+		throw_win32_error(get_last_error());
 	return ret;
 }
 
@@ -90,11 +71,7 @@ inline auto call_win32_ws2_32_nullptr(char const *name,Args&& ...args)
 {
 	auto ret(get_proc_address<prototype>(name)(std::forward<Args>(args)...));
 	if(ret==nullptr)
-#ifdef __cpp_exceptions
-		throw win32_error(get_last_error());
-#else
-		fast_terminate();
-#endif
+		throw_win32_error(get_last_error());
 	return ret;
 }
 
@@ -135,9 +112,48 @@ inline auto recv(SOCKET sock,mem_address* add,Args&& ...args)
 }
 
 template<typename ...Args>
+inline auto shutdown(Args&& ...args)
+{
+	return call_win32_ws2_32<decltype(::shutdown)*>("shutdown",std::forward<Args>(args)...);
+}
+
+template<typename ...Args>
 inline auto wsasend(Args&& ...args)
 {
 	return call_win32_ws2_32<decltype(::WSASend)*>("WSASend",std::forward<Args>(args)...);
+}
+
+template<typename ...Args>
+inline auto wsasendmsg(Args&& ...args)
+{
+	return call_win32_ws2_32<decltype(::WSASendMsg)*>("WSASendMsg",std::forward<Args>(args)...);
+}
+
+template<typename ...Args>
+inline auto sendto(Args&& ...args)
+{
+	return call_win32_ws2_32<decltype(::sendto)*>("sendto",std::forward<Args>(args)...);
+}
+
+template<typename ...Args>
+inline auto recvfrom(Args&& ...args)
+{
+	return call_win32_ws2_32<decltype(::recvfrom)*>("recvfrom",std::forward<Args>(args)...);
+}
+
+template<typename ...Args>
+inline auto wsarecvmsg(Args&& ...args)
+{
+	return call_win32_ws2_32<int __stdcall (*)(SOCKET,LPWSAMSG,DWORD,LPDWORD,LPWSAOVERLAPPED,LPWSAOVERLAPPED_COMPLETION_ROUTINE)>("WSARecvMsg",std::forward<Args>(args)...);
+}
+
+template<typename ...Args>
+inline void closesocket_ignore_error(Args&& ...args) noexcept
+{
+	auto func{::GetProcAddress(ws2_32_dll.get(),"closesocket")};
+	if(func==nullptr)[[unlikely]]
+		fast_terminate();
+	bit_cast<decltype(::closesocket)*>(func)(std::forward<Args>(args)...);
 }
 
 template<typename ...Args>
@@ -164,11 +180,7 @@ inline void getaddrinfo(Args&& ...args)
 {
 	auto ec(get_proc_address<decltype(::getaddrinfo)*>("getaddrinfo")(std::forward<Args>(args)...));
 	if(ec)
-#ifdef __cpp_exceptions
-		throw win32_error();
-#else
-		fast_terminate();
-#endif
+		throw_win32_error();
 }
 
 template<typename ...Args>
@@ -185,11 +197,7 @@ public:
 		auto WSAStartup(reinterpret_cast<decltype(::WSAStartup)*>(reinterpret_cast<void(*)()>(::GetProcAddress(ws2_32_dll.get(),"WSAStartup"))));
 		WSADATA data;
 		if(auto error_code=WSAStartup(2<<8|2,std::addressof(data)))
-#ifdef __cpp_exceptions
-			throw win32_error(error_code);
-#else
-			fast_terminate();
-#endif
+			throw_win32_error(error_code);
 	}
 	win32_startup(win32_startup const&) = delete;
 	win32_startup& operator=(win32_startup const&) = delete;
@@ -203,51 +211,42 @@ public:
 inline win32_startup const startup;
 
 }
-}
 
 namespace fast_io::details
 {
 //zero copy IO for win32
 template<bool rac=false, zero_copy_output_stream output,zero_copy_input_stream input>
-inline std::size_t zero_copy_transmit_once(output& outp,input& inp,std::size_t bytes,std::int64_t offset)
+inline std::uintmax_t zero_copy_transmit_once(output& outp,input& inp,std::uintmax_t bytes,std::int64_t offset)
 {
 	if constexpr(rac)
 	{
 		fast_io::win32::overlapped ov{};
-		memcpy(std::addressof(ov),offset,sizeof(std::int64_t));
+		memcpy(std::addressof(ov),std::addressof(offset),sizeof(std::int64_t));
 	if(!((fast_io::sock::details::get_proc_address_mswsock<decltype(fast_io::win32::TransmitFile)*>
-		("TransmitFile"))(zero_copy_out_handle(outp),zero_copy_in_handle(inp),bytes,0,std::addressof(ov),nullptr,0/*TF_USE_DEFAULT_WORKER*/)))
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		("TransmitFile"))(zero_copy_out_handle(outp),zero_copy_in_handle(inp),bytes,0,std::addressof(ov),nullptr,32/*TF_USE_DEFAULT_WORKER*/)))
+		throw_win32_error();
 	}
 	else
 	{
 	if(!((fast_io::sock::details::get_proc_address_mswsock<decltype(fast_io::win32::TransmitFile)*>
 		("TransmitFile"))(zero_copy_out_handle(outp),zero_copy_in_handle(inp),bytes,0,nullptr,nullptr,0/*TF_USE_DEFAULT_WORKER*/)))
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_win32_error();
 	}
 	return bytes;
 }
 
 
 template<bool rac=false,zero_copy_output_stream output,zero_copy_input_stream input>
-inline std::uintmax_t zero_copy_transmit(output& outp,input& inp,std::intmax_t offset,std::size_t bytes)
+inline std::uintmax_t zero_copy_transmit(output& outp,input& inp,std::int64_t offset,std::uintmax_t bytes)
 {
-	constexpr std::size_t maximum_transmit_bytes(2147483646);
+	constexpr std::uintmax_t maximum_transmit_bytes(2147483646);
 	std::uintmax_t transmitted{};
 	for(;bytes;)
 	{
-		std::size_t should_transfer(maximum_transmit_bytes);
+		std::uintmax_t should_transfer(maximum_transmit_bytes);
 		if(bytes<should_transfer)
 			should_transfer=bytes;
-		std::size_t transferred_this_round(details::zero_copy_transmit_once<rac>(outp,inp,should_transfer,offset));
+		std::uintmax_t transferred_this_round(details::zero_copy_transmit_once<rac>(outp,inp,should_transfer,offset));
 		transmitted+=transferred_this_round;
 		if(transferred_this_round!=should_transfer)
 			return transmitted;
@@ -257,12 +256,12 @@ inline std::uintmax_t zero_copy_transmit(output& outp,input& inp,std::intmax_t o
 	
 }
 template<bool rac=false,zero_copy_output_stream output,zero_copy_input_stream input>
-inline std::size_t zero_copy_transmit(output& outp,input& inp,std::intmax_t offset)
+inline std::uintmax_t zero_copy_transmit(output& outp,input& inp,std::int64_t offset)
 {
-	constexpr std::size_t maximum_transmit_bytes(2147483646);
-	for(std::uintmax_t transmitted(0);;)
+	constexpr std::uintmax_t maximum_transmit_bytes(2147483646);
+	for(std::uintmax_t transmitted{};;)
 	{
-		std::size_t transferred_this_round(details::zero_copy_transmit_once<rac>(outp,inp,maximum_transmit_bytes,offset));
+		std::uintmax_t transferred_this_round(details::zero_copy_transmit_once<rac>(outp,inp,maximum_transmit_bytes,offset));
 		transmitted+=transferred_this_round;
 		if(transferred_this_round!=maximum_transmit_bytes)
 			return transmitted;

@@ -23,7 +23,7 @@ inline constexpr void ibuffer_set_curr(c_io_observer_unlocked cio,char* ptr) noe
 	cio.fp->_IO_read_ptr=ptr;
 }
 
-extern "C" int __underflow (FILE *) noexcept;
+extern "C" int __underflow (std::FILE*) noexcept;
 inline bool underflow(c_io_observer_unlocked cio) noexcept
 {
 	return __underflow(cio.fp)!=EOF;
@@ -54,11 +54,7 @@ inline constexpr void obuffer_set_curr(c_io_observer_unlocked cio,char* ptr) noe
 inline void overflow(c_io_observer_unlocked cio,char ch)
 {
 	if(__overflow(cio.fp,static_cast<int>(static_cast<unsigned char>(ch)))==EOF)[[unlikely]]
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 }
 
 namespace details::fp_wide_hack
@@ -142,11 +138,21 @@ extern "C" std::wint_t __woverflow (FILE *,std::wint_t) noexcept;
 inline void overflow(wc_io_observer_unlocked cio,wchar_t ch)
 {
 	if(__woverflow(cio.fp,static_cast<std::wint_t>(ch))==WEOF)[[unlikely]]
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
+}
+
+template<std::integral ch_type>
+requires (std::same_as<ch_type,char>||std::same_as<ch_type,wchar_t>)
+inline constexpr void put_define(basic_c_io_observer_unlocked<ch_type> out,typename basic_c_io_observer_unlocked<ch_type>::char_type ch)
+{
+	auto ref{obuffer_curr(out)};
+	if(obuffer_end(out)<=ref)[[unlikely]]
+	{
+		overflow(out,ch);
+		return;
+	}
+	*ref=ch;
+	obuffer_set_curr(out,ref+1);
 }
 
 }

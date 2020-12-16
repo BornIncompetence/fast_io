@@ -73,18 +73,15 @@ using sha1
 using sha256 = sha<sha256_function>;
 
 using sha512 = sha<sha512_function>;
-using md5
-[[deprecated("The weaknesses of MD5 have been exploited in the field, most infamously by the Flame malware in 2012. See wikipedia https://en.wikipedia.org/wiki/MD5")]]
-= sha<md5_function,false>;
 
-template<typename T,bool endian_reverse>
-inline constexpr std::size_t print_reserve_size(print_reserve_type_t<sha<T,endian_reverse>>)
+template<std::integral char_type,typename T,bool endian_reverse>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,sha<T,endian_reverse>>)
 {
 	return sizeof(typename T::digest_type)*8;
 }
 
-template<std::random_access_iterator caiter,typename T,bool endian_reverse>
-inline constexpr caiter print_reserve_define(print_reserve_type_t<sha<T,endian_reverse>>,caiter iter,auto& i)
+template<std::integral char_type,std::random_access_iterator caiter,typename T,bool endian_reverse>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,sha<T,endian_reverse>>,caiter iter,auto& i)
 {
 	constexpr std::size_t offset{sizeof(typename T::digest_type::value_type)*2};
 	for(auto e : i.digest_block)

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace fast_io::openssl::details
+namespace fast_io::details
 {
 
 template<typename T>
@@ -20,6 +20,16 @@ public:
 	constexpr auto& native_handle() noexcept
 	{
 		return handle;
+	}
+	constexpr void reset(native_handle_type newhandle=nullptr) noexcept
+	{
+		handle=newhandle;
+	}
+	constexpr native_handle_type release() noexcept
+	{
+		auto temp{handle};
+		handle=nullptr;
+		return temp;
 	}
 };
 

@@ -32,7 +32,7 @@ concept boost_iostreams_flushable_device=boost_iostreams_any_device<src_type>&&r
 template<typename src_type>
 concept boost_iostream_seekable_device=boost_iostreams_any_device<src_type>&&requires(src_type& src,std::intmax_t offset,std::ios::seekdir dir)
 {
-	{src.seek(offset,dir)}->std::same_as<std::intmax_t>;
+	{src.seek(offset,dir)}->std::convertible_to<std::intmax_t>;
 };
 
 template<std::integral ch_type, boost_iostreams_any_device src_type>

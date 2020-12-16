@@ -40,79 +40,79 @@ constexpr void print_define(output& out,win32_memory_page_protect info)
 	switch(info)
 	{
 	case win32_memory_page_protect::executed:
-		print(out,"executed");
+		print_freestanding(out,"executed");
 	break;
 	case win32_memory_page_protect::executed_read:
-		print(out,"executed_read");
+		print_freestanding(out,"executed_read");
 	break;
 	case win32_memory_page_protect::executed_readwrite:
-		print(out,"executed_readwrite");
+		print_freestanding(out,"executed_readwrite");
 	break;
 	case win32_memory_page_protect::executed_writecopy:
-		print(out,"executed_writecopy");
+		print_freestanding(out,"executed_writecopy");
 	break;
 	case win32_memory_page_protect::noaccess:
-		print(out,"noaccess");
+		print_freestanding(out,"noaccess");
 	break;
 	case win32_memory_page_protect::readonly:
-		print(out,"readonly");
+		print_freestanding(out,"readonly");
 	break;
 	case win32_memory_page_protect::readwrite:
-		print(out,"readwrite");
+		print_freestanding(out,"readwrite");
 	break;
 	case win32_memory_page_protect::writecopy:
-		print(out,"writecopy");
+		print_freestanding(out,"writecopy");
 	break;
 
 	case win32_memory_page_protect::graphics_noaccess:
-		print(out,"graphics_noaccess");
+		print_freestanding(out,"graphics_noaccess");
 	break;
 	case win32_memory_page_protect::graphics_readonly:
-		print(out,"graphics_readonly");
+		print_freestanding(out,"graphics_readonly");
 	break;
 	case win32_memory_page_protect::graphics_readwrite:
-		print(out,"graphics_readwrite");
+		print_freestanding(out,"graphics_readwrite");
 	break;
 //	case win32_memory_page_protect::graphics_writecopy:
-//		print(out,"graphics_writecopy");
+//		print_freestanding(out,"graphics_writecopy");
 //	break;
 	case win32_memory_page_protect::graphics_execute:
-		print(out,"graphics_execute");
+		print_freestanding(out,"graphics_execute");
 	break;
 	case win32_memory_page_protect::graphics_execute_read:
-		print(out,"graphics_execute_read");
+		print_freestanding(out,"graphics_execute_read");
 	break;
 	case win32_memory_page_protect::graphics_execute_readwrite:
-		print(out,"graphics_execute_readwrite");
+		print_freestanding(out,"graphics_execute_readwrite");
 	break;
 	case win32_memory_page_protect::graphics_coherent:
-		print(out,"graphics_coherent");
+		print_freestanding(out,"graphics_coherent");
 	break;
 
 	case win32_memory_page_protect::targets_invalid:
-		print(out,"targets_invalid/targets_no_update");
+		print_freestanding(out,"targets_invalid/targets_no_update");
 	break;
 
 	case win32_memory_page_protect::guard:
-		print(out,"guard");
+		print_freestanding(out,"guard");
 	break;
 	case win32_memory_page_protect::nocache:
-		print(out,"nocache");
+		print_freestanding(out,"nocache");
 	break;
 
 	case win32_memory_page_protect::writecombine:
-		print(out,"writecombine");
+		print_freestanding(out,"writecombine");
 	break;
 
 	case win32_memory_page_protect::enclave_thread_control:
-		print(out,"enclave_thread_control/revert_to_file_map/enclave_unvalidated");
+		print_freestanding(out,"enclave_thread_control/revert_to_file_map/enclave_unvalidated");
 	break;
 
 	case win32_memory_page_protect::enclave_no_change:
-		print(out,"enclave_no_change/enclave_nodecommit");
+		print_freestanding(out,"enclave_no_change/enclave_nodecommit");
 	break;
 	default:
-		print(out,"unknown(",static_cast<std::uint32_t>(info),")");
+		print_freestanding(out,"unknown(",static_cast<std::uint32_t>(info),")");
 	}
 }
 
@@ -160,7 +160,7 @@ struct win32_memory_basic_information
 template<reserve_output_stream output>
 constexpr void print_define(output& out,win32_memory_basic_information const& info)
 {
-	print(out,"win32_memory_basic_information:"
+	print_freestanding(out,"win32_memory_basic_information:"
 	"\nbase address:",info.base_address,
 	"\nallocation base:",info.allocation_base,
 	"\nallocation protect:",info.allocation_protect,
@@ -230,12 +230,8 @@ public:
 	basic_win32_memory_io_handle(basic_win32_memory_io_handle const& other)
 	{
 		auto const current_process(win32::GetCurrentProcess());
-		if(!win32::DuplicateHandle(current_process,other.native_handle(),current_process,std::addressof(this->native_handle()), 0, true, 2/*DUPLICATE_SAME_ACCESS*/))
-#ifdef __cpp_exceptions
-			throw win32_error();
-#else
-			fast_terminate();
-#endif
+		if (!win32::DuplicateHandle(current_process, other.native_handle(), current_process, std::addressof(this->native_handle()), 0, true, 2/*DUPLICATE_SAME_ACCESS*/))
+			throw_win32_error();
 		this->base_address()=other.base_address();
 	}
 	basic_win32_memory_io_handle& operator=(basic_win32_memory_io_handle const& other)
@@ -243,11 +239,7 @@ public:
 		auto const current_process(win32::GetCurrentProcess());
 		void* new_handle{};
 		if(!win32::DuplicateHandle(current_process,other.native_handle(),current_process,std::addressof(new_handle), 0, true, 2/*DUPLICATE_SAME_ACCESS*/))
-#ifdef __cpp_exceptions
-			throw win32_error();
-#else
-			fast_terminate();
-#endif
+			throw_win32_error();
 		if(this->native_handle())[[likely]]
 			fast_io::win32::CloseHandle(this->native_handle());
 		this->native_handle()=new_handle;
@@ -325,11 +317,11 @@ inline constexpr win32_desired_access& operator|=(win32_desired_access& x, win32
 
 inline constexpr win32_desired_access& operator^=(win32_desired_access& x, win32_desired_access y) noexcept{return x=x^y;}
 
-inline std::uint32_t get_process_id_from_window_name(std::string_view name)
+inline std::uint32_t get_process_id_from_window_name(cstring_view name)
 {
 	void* hwnd {win32::FindWindowA(nullptr,name.data())};
 	if(hwnd==nullptr)
-		throw win32_error();
+		throw_win32_error();
 	std::uint32_t process_id{};
 	win32::GetWindowThreadProcessId(hwnd,std::addressof(process_id));
 	return process_id;
@@ -350,18 +342,22 @@ public:
 		basic_win32_memory_io_handle<ch_type>(win32::OpenProcess(static_cast<std::uint32_t>(dw_desired_access),inherit_handle,process_id),base_addr)
 	{
 		if(this->native_handle()==nullptr)
-			throw win32_error();
+			throw_win32_error();
 	}
 	void close()
 	{
 		if(this->native_handle())[[likely]]
 		{
 			if(!fast_io::win32::CloseHandle(this->native_handle()))[[unlikely]]
-				throw win32_error();
+				throw_win32_error();
 			this->native_handle()=nullptr;
 			this->base_address()={};
 		}
 	}
+	constexpr basic_win32_memory_file(basic_win32_memory_file const&)=default;
+	constexpr basic_win32_memory_file& operator=(basic_win32_memory_file const&)=default;
+	constexpr basic_win32_memory_file(basic_win32_memory_file&&) noexcept=default;
+	constexpr basic_win32_memory_file& operator=(basic_win32_memory_file&&) noexcept=default;
 	~basic_win32_memory_file()
 	{
 		if(this->native_handle())[[likely]]
@@ -374,7 +370,7 @@ template<std::integral char_type,std::contiguous_iterator Iter>
 {
 	std::size_t readed{};
 	if(!win32::ReadProcessMemory(iob.handle,bit_cast<void const*>(iob.base_addr),std::to_address(begin),(end-begin)*sizeof(*begin),std::addressof(readed)))
-		throw win32_error();
+		throw_win32_error();
 	iob.base_addr+=readed;
 	return begin+readed/sizeof(*begin);
 }
@@ -391,7 +387,7 @@ inline Iter write(basic_win32_memory_io_observer<char_type>& iob,Iter begin,Iter
 	std::size_t written{};
 	if(!win32::WriteProcessMemory(iob.handle,bit_cast<void*>(iob.base_addr),
 		std::to_address(begin),(end-begin)*sizeof(*begin),std::addressof(written)))
-		throw win32_error();
+		throw_win32_error();
 	iob.base_addr+=written;
 	return begin+written/sizeof(*begin);
 }
@@ -407,7 +403,7 @@ inline win32_memory_basic_information win32_virtual_query(basic_win32_memory_io_
 {
 	win32_memory_basic_information mem{};
 	if(win32::VirtualQueryEx(iob.handle,bit_cast<void const*>(iob.base_addr),std::addressof(mem),sizeof(mem))!=sizeof(mem))
-		throw win32_error();
+		throw_win32_error();
 	return mem;
 }
 
@@ -419,7 +415,7 @@ inline win32_memory_page_protect win32_virtual_protect(basic_win32_memory_io_obs
 	std::uint32_t old_protect{};
 	if(!win32::VirtualProtectEx(iob.handle,bit_cast<void const*>(iob.base_addr),
 		size,static_cast<std::uint32_t>(new_protect),std::addressof(old_protect)))
-		throw win32_error();
+		throw_win32_error();
 	return static_cast<win32_memory_page_protect>(old_protect);
 }
 

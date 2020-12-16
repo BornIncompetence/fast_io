@@ -6,6 +6,9 @@ benchmarks/*/*.txt
 *.app
 .vs
 .vscode
+.tmp
+/include/.vscode
+/include/fast_io_network/.vscode/settings.json
 CMakeSettings.json
 */isenseconfig/*
 build

@@ -64,16 +64,18 @@ struct hmac
 };
 
 
-template<reserve_printable T,bool endian_reverse>
-inline constexpr std::size_t print_reserve_size(print_reserve_type_t<hmac<T,endian_reverse>>)
+template<std::integral char_type,typename T,bool endian_reverse>
+requires reserve_printable<char_type,T>
+inline constexpr std::size_t print_reserve_size(io_reserve_type_t<char_type,hmac<T,endian_reverse>>)
 {
-	return print_reserve_size(print_reserve_type<T>);
+	return print_reserve_size(io_reserve_type<char_type,T>);
 }
 
-template<reserve_printable T,bool endian_reverse,std::random_access_iterator caiter>
-inline constexpr caiter print_reserve_define(print_reserve_type_t<hmac<T,endian_reverse>>,caiter iter,auto& i)
+template<std::integral char_type,typename T,bool endian_reverse,std::random_access_iterator caiter>
+requires reserve_printable<char_type,T>
+inline constexpr caiter print_reserve_define(io_reserve_type_t<char_type,hmac<T,endian_reverse>>,caiter iter,auto& i)
 {
-	return print_reserve_define(print_reserve_type<T>,iter,i.function);
+	return print_reserve_define(io_reserve_type<char_type,T>,iter,i.function);
 }
 
 using hmac_sha1

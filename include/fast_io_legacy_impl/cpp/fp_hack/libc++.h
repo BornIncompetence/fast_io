@@ -49,9 +49,9 @@ private:
 
 
 template<typename char_type,typename traits_type>
-inline FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
+inline std::FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
 {
-	FILE* fp{};
+	std::FILE* fp{};
 	// we can only do this or ubsanitizer will complain. Do not do down_cast
 	memcpy(std::addressof(fp),
 	reinterpret_cast<std::byte*>(fbuf)+sizeof(std::basic_streambuf<char_type, traits_type>)+
@@ -59,21 +59,35 @@ inline FILE* fp_hack(std::basic_filebuf<char_type,traits_type>* fbuf) noexcept
 	return fp;
 }
 
-#ifdef __cpp_rtti
+
 template<typename T>
 requires (std::same_as<T,std::basic_streambuf<typename T::char_type,typename T::traits_type>>)
-inline FILE* fp_hack(T* cio)
+inline std::FILE* fp_hack(T* stdbuf) noexcept
 {
+#ifdef __cpp_rtti
 	using char_type = typename T::char_type;
 	using traits_type = typename T::traits_type;
-	std::string_view stdin_type{typeid(std::__stdinbuf<char_type>).name()};
-	std::string_view my_type{typeid(*stdbuf).name()};
-	if(my_type==stdin_type)
-		return stdinbuf_stdoutbuf_fp_hack(stdbuf);
-	std::string_view stdout_type{typeid(std::__stdoutbuf<char_type>).name()};
-	if(my_type==stdout_type)
-		return stdinbuf_stdoutbuf_fp_hack(stdbuf);
-	return fp_hack(std::addressof(dynamic_cast<std::basic_filebuf<char_type,traits_type>&>(*stdbuf)));
-}
+#ifdef __cpp_exceptions
+	try
+	{
 #endif
+		cstring_view stdin_type{typeid(std::__stdinbuf<char_type>).name()};
+		cstring_view my_type{typeid(*stdbuf).name()};
+		if(my_type==stdin_type)
+			return stdinbuf_stdoutbuf_fp_hack(stdbuf);
+		cstring_view stdout_type{typeid(std::__stdoutbuf<char_type>).name()};
+		if(my_type==stdout_type)
+			return stdinbuf_stdoutbuf_fp_hack(stdbuf);
+		auto fbf{dynamic_cast<std::basic_filebuf<char_type,traits_type>*>(stdbuf)};
+		if(fbf)
+			return fp_hack(stdbuf);
+#ifdef __cpp_exceptions
+	}
+	catch(...){}
+#endif
+#endif
+	errno=EBADF;
+	return nullptr;
+
+}
 }

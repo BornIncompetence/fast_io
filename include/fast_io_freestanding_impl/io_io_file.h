@@ -59,11 +59,7 @@ public:
 		if constexpr(input_stream<value_type>)
 			return read(io,b,e);
 		else
-#ifdef __cpp_exceptions
-			throw posix_error(EOPNOTSUPP);
-#else
-			fast_terminate();
-#endif
+			throw_posix_error(EOPNOTSUPP);
 	}
 #if __cpp_constexpr >= 201907L
 	constexpr
@@ -83,11 +79,7 @@ public:
 			}			
 		}
 		else
-#ifdef __cpp_exceptions
-			throw posix_error(EOPNOTSUPP);
-#else
-			fast_terminate();
-#endif
+			throw_posix_error(EOPNOTSUPP);
 	}
 #if __cpp_constexpr >= 201907L
 	constexpr
@@ -100,11 +92,7 @@ public:
 				flush(io);
 		}
 		else
-#ifdef __cpp_exceptions
-			throw posix_error(EOPNOTSUPP);
-#else
-			fast_terminate();
-#endif
+			throw_posix_error(EOPNOTSUPP);
 	}
 #if __cpp_constexpr >= 201907L
 	constexpr
@@ -112,13 +100,9 @@ public:
 	std::uintmax_t seek_impl(std::intmax_t off,seekdir dir) override
 	{
 		if constexpr(random_access_stream<value_type>)
-			return seek(io,seek_type<char_type>,off,dir);
+			return seek(io,off,dir);
 		else
-#ifdef __cpp_exceptions
-			throw posix_error(EOPNOTSUPP);
-#else
-			fast_terminate();
-#endif
+			throw_posix_error(EOPNOTSUPP);
 	}
 #if __cpp_constexpr >= 201907L
 	constexpr
@@ -128,11 +112,7 @@ public:
 		if constexpr(std::is_reference_v<stm>||std::copyable<stm>)
 			return new derv(std::in_place_type<stm>,this->io);
 		else
-#ifdef __cpp_exceptions
-			throw posix_error(EOPNOTSUPP);
-#else
-			fast_terminate();
-#endif
+			throw_posix_error(EOPNOTSUPP);
 	}
 };
 
@@ -240,6 +220,22 @@ public:
 #if __cpp_constexpr >= 201907L
 	constexpr
 #endif
+	basic_io_file(basic_io_file const&)=default;
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	basic_io_file& operator=(basic_io_file const&)=default;
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	basic_io_file(basic_io_file&&) noexcept=default;
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
+	basic_io_file& operator=(basic_io_file&&) noexcept=default;
+#if __cpp_constexpr >= 201907L
+	constexpr
+#endif
 	~basic_io_file()
 	{
 		delete this->io_ptr;
@@ -288,11 +284,18 @@ constexpr std::uintmax_t seek(basic_io_io_observer<ch_type> iob,seek_type_t<T>,U
 	return iob.io_ptr->seek_impl(seek_precondition<std::intmax_t,T,ch_type>(i),s);
 }
 
-template<std::integral ch_type,std::integral U>
-constexpr auto seek(basic_io_io_observer<ch_type> iob,U i=0,seekdir s=seekdir::cur)
+template<std::integral ch_type>
+inline constexpr basic_io_io_observer<ch_type> io_value_handle(basic_io_io_observer<ch_type> iob) noexcept
 {
-	return seek(iob,seek_type<ch_type>,i,s);
+	return iob;
 }
+
+template<std::integral ch_type>
+constexpr auto seek(basic_io_io_observer<ch_type> iob,std::intmax_t offset=0,seekdir s=seekdir::cur)
+{
+	return seek(iob,offset,s);
+}
+
 using io_io_observer = basic_io_io_observer<char>;
 using io_io_handle = basic_io_io_handle<char>;
 using io_file = basic_io_file<char>;
@@ -301,8 +304,17 @@ using u8io_io_observer = basic_io_io_observer<char8_t>;
 using u8io_io_handle = basic_io_io_handle<char8_t>;
 using u8io_file = basic_io_file<char8_t>;
 
+#ifndef __MSDOS__
 using wio_io_observer = basic_io_io_observer<wchar_t>;
 using wio_io_handle = basic_io_io_handle<wchar_t>;
 using wio_file = basic_io_file<wchar_t>;
+#endif
 
+using u16io_io_observer = basic_io_io_observer<char16_t>;
+using u16io_io_handle = basic_io_io_handle<char16_t>;
+using u16io_file = basic_io_file<char16_t>;
+
+using u32io_io_observer = basic_io_io_observer<char32_t>;
+using u32io_io_handle = basic_io_io_handle<char32_t>;
+using u32io_file = basic_io_file<char32_t>;
 }

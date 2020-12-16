@@ -123,57 +123,41 @@ public:
 	}
 
 
-	basic_gz_file(basic_posix_io_handle<char_type>&& posix_handle,std::string_view mode):
-		basic_gz_io_observer<char_type>(gzdopen(posix_handle.native_handle(),mode.data()))
+	basic_gz_file(native_interface_t,int fd,char const* mode):
+		basic_gz_io_observer<char_type>(gzdopen(pfd,mode.data()))
 	{
 		if(this->native_handle()==nullptr)
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
-		posix_handle.detach();
+			throw_posix_error();
+		posix_handle.release();
 	}
 
 	basic_gz_file(basic_posix_io_handle<char_type>&& posix_handle,open_mode om):
-		basic_gz_file(std::move(posix_handle),to_c_mode(om)){}
-	template<open_mode om>
-	basic_gz_file(basic_posix_io_handle<char_type>&& posix_handle,open_interface_t<om>):
-		basic_gz_file(std::move(posix_handle),fast_io::details::c_open_mode<om>::value){}
+		basic_gz_file(native_interface,posix_handle.fd,to_native_c_mode(om))
+	{
+		posix_handle.release();
+	}
 
-#if defined(__WINNT__) || defined(_MSC_VER)
+#ifdef _WIN32
 //windows specific. open posix file from win32 io handle
-	basic_gz_file(basic_win32_io_handle<char_type>&& win32_handle,std::string_view mode):
-		basic_gz_file(basic_posix_file<char_type>(std::move(win32_handle),mode),mode)
-	{
-	}
 	basic_gz_file(basic_win32_io_handle<char_type>&& win32_handle,open_mode om):
-		basic_gz_file(basic_posix_file<char_type>(std::move(win32_handle),om),to_c_mode(om))
-	{
-	}
-	template<open_mode om>
-	basic_gz_file(basic_win32_io_handle<char_type>&& win32_handle,open_interface_t<om>):
-		basic_gz_file(basic_posix_file<char_type>(std::move(win32_handle),open_interface<om>),
-			fast_io::details::c_open_mode<om>::value)//open::c_style_interface_t<om>::mode)
+		basic_gz_file(basic_posix_file<char_type>(std::move(win32_handle),om),to_native_c_mode(om))
 	{
 	}
 #endif
 
+	inline void reset(native_handle_type hd) noexcept
+	{
+		if(this->native_handle())[[likely]]
+			gzclose(this->native_handle());
+		this->native_handle()=hd;
+	}
 
-	template<open_mode om,typename... Args>
-	basic_gz_file(std::string_view file,open_interface_t<om>,Args&& ...args):
-		basic_gz_file(basic_posix_file<char_type>(file,open_interface<om>,std::forward<Args>(args)...),
-			open_interface<om>)
+	basic_gz_file(cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_gz_file(basic_posix_file<char_type>(file,om,pm),om)
 	{}
-	template<typename... Args>
-	basic_gz_file(std::string_view file,open_mode om,Args&& ...args):
-		basic_gz_file(basic_posix_file<char_type>(file,om,std::forward<Args>(args)...),om)
+	basic_gz_file(native_at_entry nate,cstring_view file,open_mode om,perms pm=static_cast<perms>(436)):
+		basic_gz_file(basic_posix_file<char_type>(nate,file,om,pm),om)
 	{}
-	template<typename... Args>
-	basic_gz_file(std::string_view file,std::string_view mode,Args&& ...args):
-		basic_gz_file(basic_posix_file<char_type>(file,mode,std::forward<Args>(args)...),mode)
-	{}
-
 };
 
 using gz_io_observer = basic_gz_io_observer<char>;
@@ -192,11 +176,7 @@ inline Iter read(basic_gz_io_observer<char_type> giob,Iter b,Iter e)
 				to_read=std::numeric_limits<unsigned>::max();
 		int readed{gzread(giob.gzfile,std::to_address(b),static_cast<unsigned>(to_read))};
 		if(readed==-1)
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 		return b+static_cast<std::size_t>(readed)/sizeof(*b);
 	}
 	else
@@ -215,11 +195,7 @@ inline Iter write(basic_gz_io_observer<char_type> giob,Iter b,Iter e)
 				to_write=std::numeric_limits<unsigned>::max();
 		int written{gzwrite(giob.gzfile,std::to_address(b),static_cast<unsigned>(to_write))};
 		if(written<0)
-#ifdef __cpp_exceptions
-			throw posix_error();
-#else
-			fast_terminate();
-#endif
+			throw_posix_error();
 		return b+static_cast<std::size_t>(written)/sizeof(*b);
 	}
 	else
@@ -230,11 +206,7 @@ template<std::integral char_type>
 inline void flush(basic_gz_io_observer<char_type> giob)
 {
 	if(gzflush(giob.gzfile))
-#ifdef __cpp_exceptions
-		throw posix_error();
-#else
-		fast_terminate();
-#endif
+		throw_posix_error();
 }
 
 static_assert(input_stream<gz_file>);

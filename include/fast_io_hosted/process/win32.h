@@ -6,7 +6,7 @@ namespace fast_io
 namespace details
 {
 
-inline void append_to_cmdline(std::string& cmdline,std::string_view str)
+inline void append_to_cmdline(std::string& cmdline,cstring_view str)
 {
 	bool has_space{};
 	for(auto const& e : str)
@@ -65,19 +65,11 @@ public:
 	{
 		std::uint32_t dw_flags{};
 		if(!fast_io::win32::GetHandleInformation(hd,std::addressof(dw_flags)))
-#ifdef __cpp_exceptions
-			throw win32_error();
-#else
-			fast_terminate();
-#endif
+			throw_win32_error();
 		if(!(dw_flags&1))
 		{
 			if(!fast_io::win32::SetHandleInformation(hd,1,1))
-#ifdef __cpp_exceptions
-				throw win32_error();
-#else
-				fast_terminate();
-#endif
+				throw_win32_error();
 			hobject=hd;
 		}
 	}
@@ -97,7 +89,7 @@ class basic_win32_process
 public:
 	using native_handle_type = win32::process_information;
 /*
-	basic_win32_process(native_interface_t,std::string_view path,
+	basic_win32_process(native_interface_t,cstring_view path,
 		std::string cmdline,
 		process_io io)
 	{
@@ -106,11 +98,11 @@ public:
 			nullptr,nullptr,true,
 			0x00000080,
 			nullptr,nullptr,std::addressof(sup),std::addressof(pinfo)))
-			throw win32_error();
+			throw_win32_error();
 	}*/
-	basic_win32_process(std::string_view path,
-				std::vector<std::string_view> args,
-				process_io io)
+	basic_win32_process(cstring_view path,
+				std::vector<cstring_view> args,
+				process_io io,char const* directory_folder=nullptr)
 	{
 		std::string pth(path.data(),path.data()+path.size());
 		if(pth.starts_with("./"))
@@ -138,8 +130,8 @@ public:
 			pth.c_str(),cmdline.data(),
 			nullptr,nullptr,true,
 			0x00000080,
-			nullptr,nullptr,std::addressof(sup),std::addressof(pinfo)))
-			throw win32_error();
+			nullptr,directory_folder,std::addressof(sup),std::addressof(pinfo)))
+			throw_win32_error();
 	}
 	void detach()
 	{
@@ -165,7 +157,7 @@ public:
 	void join()
 	{
 		if(static_cast<std::uint32_t>(0xFFFFFFFF)==win32::WaitForSingleObject(pinfo.hProcess,-1))
-			throw win32_error();
+			throw_win32_error();
 		win32::CloseHandle(pinfo.hProcess);
 		pinfo.hProcess={};
 	}

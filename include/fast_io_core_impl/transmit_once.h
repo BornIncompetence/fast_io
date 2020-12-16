@@ -7,9 +7,9 @@ template<output_stream output,input_stream input>
 inline constexpr std::size_t transmit_once(output&& outp,input&& inp)
 {
 
-	if constexpr(mutex_input_stream<input>)
+	if constexpr(mutex_stream<input>)
 	{
-		typename std::remove_cvref_t<input>::lock_guard_type lg{mutex(inp)};
+		details::lock_guard lg{inp};
 		decltype(auto) uh{unlocked_handle(inp)};
 		return transmit_once(outp,uh);
 	}
@@ -31,6 +31,7 @@ inline constexpr std::size_t transmit_once(output&& outp,input&& inp)
 	else
 	{
 		using char_type = typename std::remove_cvref_t<input>::char_type;
+		
 		std::array<char_type,65536> buffer;
 		auto it{read(inp,buffer.data(),buffer.data()+buffer.size())};
 		write(outp,buffer.data(),it);

@@ -1,5 +1,5 @@
 #pragma once
-#include<unordered_map>
+//#include<unordered_map>
 
 namespace fast_io
 {
@@ -88,46 +88,15 @@ inline void scan_define(input& in,basic_http_request_status<typename input::char
 template<buffer_output_stream output>
 inline void print_define(output& out,basic_http_status<typename output::char_type> const& s)
 {
-	print(out,s.version,u8" ",s.code);
+	print_freestanding(out,s.version,u8" ",s.code);
 }
 
 template<buffer_output_stream output>
 inline void print_define(output& out,basic_http_request_status<typename output::char_type> const& s)
 {
-	print(out,s.method,u8" ",s.path,u8" ",s.version);
+	print_freestanding(out,s.method,u8" ",s.path,u8" ",s.version);
 }
 
-#ifdef __cpp_coroutines
-
-template<input_stream input>
-requires (buffer_input_stream<input>||mutex_input_stream<input>)
-inline generator<http_header_line<typename input::char_type>> scan_http_header(input& in)
-{
-	if constexpr(mutex_input_stream<input>)
-	{
-		typename input::lock_guard_type lg{mutex(in)};
-		decltype(auto) uh{unlocked_handle(in)};
-		return scan_http_header(uh);
-	}
-	else
-	{
-		for(std::basic_string<typename input::char_type> str;;)
-		{
-			scan(in,line(str));
-			if(str.size()<2)
-				co_return;
-			auto sz{str.find(u8':')};
-			if(sz==std::string::npos)
-				throw fast_io_text_error("unknown http header line");
-			std::size_t i{sz+1};
-			for(;i!=str.size()&&i==u8' ';++i);
-			co_yield http_header_line<typename input::char_type>{
-			std::basic_string_view<typename input::char_type>(str.data(),sz),
-			std::basic_string_view<typename input::char_type>(str.cbegin()+i,str.cend())};
-		}
-	}
-}
-#endif
 template<buffer_input_stream input>
 inline constexpr void skip_http_header(input& in)
 {

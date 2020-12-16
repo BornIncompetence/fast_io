@@ -1,4 +1,6 @@
 #pragma once
+
+#if 0
 #include<thread>
 
 namespace fast_io
@@ -50,9 +52,9 @@ inline constexpr manip::parallel_unit<Func> parallel_unit(Func callback,std::siz
 namespace details
 {
 template<std::integral ch_type,typename Func>
-inline constexpr void print_out(fast_io::basic_ospan<std::span<ch_type>>* osp,Func func,std::size_t start_number,std::size_t stop_number)
+inline constexpr void print_out(fast_io::ospan<ch_type>* osp,Func func,std::size_t start_number,std::size_t stop_number)
 {
-	fast_io::basic_ospan<std::span<ch_type>> bas{*osp};
+	fast_io::ospan<ch_type> bas{*osp};
 	func(bas,start_number,stop_number);
 	*osp=bas;
 }
@@ -60,7 +62,7 @@ inline constexpr void print_out(fast_io::basic_ospan<std::span<ch_type>>* osp,Fu
 template<std::integral ch_type>
 struct span_raii
 {
-	using ospan_type = fast_io::basic_ospan<std::span<ch_type>>;
+	using ospan_type = fast_io::ospan<ch_type>;
 	ospan_type osp;
 //	constexpr span_raii()=default;
 	template<typename... Args>
@@ -186,23 +188,23 @@ inline constexpr void print_define(stm& output,manip::parallel_counter<Func> ref
 
 
 template<output_stream stm,std::ranges::random_access_range R,typename Func>
-inline constexpr void print_define(stm& output,manip::parallel<R,Func> ref)
+inline constexpr void print_define(stm output,manip::parallel<R,Func> ref)
 {
 	auto be{std::ranges::begin(ref.reference)};
 	if constexpr(std::same_as<void,Func>)
 	{
-		constexpr std::size_t sz{print_reserve_size(print_reserve_type<std::remove_cvref_t<std::ranges::range_value_t<R>>>)};
+		constexpr std::size_t sz{print_reserve_size(io_reserve_type<typename stm::char_type,std::remove_cvref_t<std::ranges::range_value_t<R>>>)};
 		details::parrallel_details(output,std::ranges::size(ref.reference),sz,
 			[be](reserve_output_stream auto& output,std::size_t start_number,std::size_t stop_number)
 		{
 			auto ed{be+stop_number};
 			for(auto iter{be+start_number};iter!=ed;++iter)
-				print(output,*iter);
+				print_freestanding(output,*iter);
 		});
 	}
 	else
 	{
-		constexpr std::size_t sz{print_reserve_size(print_reserve_type<std::remove_cvref_t<
+		constexpr std::size_t sz{print_reserve_size(io_reserve_type<typename stm::char_type,std::remove_cvref_t<
 		decltype(ref.callback(*std::ranges::begin(ref.reference)))>>)};
 
 		details::parrallel_details(output,std::ranges::size(ref.reference),sz,
@@ -210,24 +212,26 @@ inline constexpr void print_define(stm& output,manip::parallel<R,Func> ref)
 		{
 			auto ed{be+stop_number};
 			for(auto iter{be+start_number};iter!=ed;++iter)
-				print(output,ref.callback(*iter));
+				print_freestanding(output,ref.callback(*iter));
 		});
 	}
 }
 
 
 template<output_stream stm,typename Func>
-inline constexpr void print_define(stm& output,manip::parallel_unit<Func> ref)
+inline constexpr void print_define(stm output,manip::parallel_unit<Func> ref)
 {
-	constexpr std::size_t sz{print_reserve_size(print_reserve_type<std::remove_cvref_t<
+	constexpr std::size_t sz{print_reserve_size(io_reserve_type<typename stm::char_type,std::remove_cvref_t<
 	decltype(ref.callback(static_cast<std::size_t>(0)))>>)};
 	details::parrallel_details(output,ref.count,sz,
 		[&ref](reserve_output_stream auto& output,std::size_t start_number,std::size_t stop_number)
 	{
 		for(;start_number!=stop_number;++start_number)
-			print(output,ref.callback(start_number));
+			print_freestanding(output,ref.callback(start_number));
 	});
 }
 
 
 }
+
+#endif

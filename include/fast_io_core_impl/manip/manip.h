@@ -13,58 +13,6 @@ struct chvw
 	T reference;
 };
 
-template<std::integral T>
-struct unsigned_view
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-
-template<std::integral T>
-struct signed_view
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-
-template<typename T>
-struct unix
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-
-template<typename T>
-struct local
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-template<typename T>
-struct utc
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-template<typename T>
-struct chinese
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-template<typename T>
-struct utc_chinese
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-template<typename T>
-struct local_chinese
-{
-	using manip_tag = manip_tag_t;
-	T& reference;
-};
-
 template<typename T>
 struct whole
 {
@@ -160,8 +108,29 @@ struct space
 	Func function;
 };
 
+template<typename T>
+struct drainage
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
+template<typename T,char8_t base,bool uppercase,bool space>
+requires ((base==2&&!uppercase)||base==16)
+struct representation
+{
+	using manip_tag = manip_tag_t;
+	T reference;
+};
+
+
 }
 
+template<output_stream T>
+inline constexpr manip::drainage<T&> drainage(T&& age)
+{
+	return {age};
+}
 
 template<std::integral T>
 inline constexpr manip::chvw<T> chvw(T ch)
@@ -169,56 +138,17 @@ inline constexpr manip::chvw<T> chvw(T ch)
 	return {ch};
 }
 template<std::integral T>
-inline constexpr manip::chvw<T*> chvw(T* ch)
+inline constexpr manip::chvw<T const*> chvw(T const* ch)
 {
 	return {ch};
 }
 
-template<std::integral T>
-inline constexpr decltype(auto) unsigned_view(T& value)
+template<typename T>
+struct chinese
 {
-	return reinterpret_cast<std::make_unsigned_t<T>&>(value);
-}
-
-template<std::integral T>
-inline constexpr decltype(auto) signed_view(T& value)
-{
-	return reinterpret_cast<std::make_signed_t<T>&>(value);
-}
-
-template<std::integral T>
-inline constexpr decltype(auto) unsigned_view(T const& value)
-{
-	return reinterpret_cast<std::make_unsigned_t<T const>&>(value);
-}
-template<std::integral T>
-inline constexpr decltype(auto) signed_view(T const& value)
-{
-	return reinterpret_cast<std::make_signed_t<T const>&>(value);
-}
-
-template<typename T>
-inline constexpr std::size_t unsigned_view(T * const pointer)
-{
-	return bit_cast<std::size_t>(pointer);
-}
-
-
-template<typename T>
-inline constexpr manip::local<T const> local(T const &f){return {f};}
-
-template<typename T>
-inline constexpr manip::utc<T const> utc(T const &f){return {f};}
-
-template<typename T>
-inline constexpr manip::unix<T const> unix(T const &f){return {f};}
-
-template<typename T>
-inline constexpr manip::chinese<T const> chinese(T const &f){return {f};}
-template<typename T>
-inline constexpr manip::local_chinese<T const> local_chinese(T const &f){return {f};}
-template<typename T>
-inline constexpr manip::utc_chinese<T const> utc_chinese(T const &f){return {f};}
+	using manip_tag = manip_tag_t;
+	T reference;
+};
 
 template<typename T>
 inline constexpr manip::whole<T> whole(T &f){return {f};}
@@ -261,6 +191,27 @@ inline constexpr manip::status_tag<typename stm::status_type,T const> status(stm
 {
 	return {f,ch};
 }*/
+template<typename T>
+inline constexpr manip::representation<T,2,false,true> bin_rep(T const&f){return {f};}
+
+template<typename T>
+inline constexpr manip::representation<T,16,false,true> hex_rep(T const&f){return {f};}
+
+template<typename T>
+inline constexpr manip::representation<T,16,true,true> hexupper_rep(T const&f){return {f};}
+
+template<typename T>
+inline constexpr manip::representation<T,2,false,false> bin_pure(T const&f){return {f};}
+
+template<typename T>
+inline constexpr manip::representation<T,16,false,false> hex_pure(T const&f){return {f};}
+
+template<typename T>
+inline constexpr manip::representation<T,16,true,false> hexupper_pure(T const&f){return {f};}
+
+template<char8_t base,bool uppercase=false,bool space=true,typename T>
+requires ((base==2&&!uppercase)||base==16)
+inline constexpr manip::representation<T,base,uppercase,space> representation(T const&f){return {f};}
 
 template<typename T,typename Func>
 inline constexpr manip::space<T&,Func&> space(T&& f,Func&& func){return {f,func};}
@@ -269,21 +220,6 @@ template<character_output_stream output,std::integral T>
 inline void print_define(output& out,manip::chvw<T> a)
 {
 	put(out,static_cast<typename output::char_type>(a.reference));
-}
-
-template<output_stream output,std::integral T>
-requires (std::same_as<typename output::char_type,std::remove_cvref_t<T>>||
-(std::same_as<typename output::char_type,char>&&std::same_as<std::remove_cvref_t<T>,char8_t>))
-inline constexpr void print_define(output& out,manip::chvw<T*> a)
-{
-	print(out,std::basic_string_view<std::remove_cvref_t<T>>(a.reference));
-}
-
-template<output_stream output>
-requires (std::same_as<typename output::char_type,char>)
-inline void print_define(output& out,std::u8string_view u8vw)
-{
-	write(out,u8vw);
 }
 
 

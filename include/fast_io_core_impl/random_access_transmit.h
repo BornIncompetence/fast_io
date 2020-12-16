@@ -34,10 +34,10 @@ inline constexpr std::uintmax_t zero_copy_random_access_transmit_impl(output& ou
 template<output_stream output,input_stream input,typename... Args>
 inline constexpr auto random_access_transmit_impl(output& outp,input& inp,std::intmax_t offset,Args&& ...args)
 {
-	if constexpr(mutex_input_stream<input>)
+	if constexpr(mutex_stream<input>)
 	{
-		typename input::lock_guard_type lg{mutex(inp)};
-		decltype(auto) uh{unlocked_handle(inp)};
+		details::lock_guard lg{inp};
+		decltype(auto) uh{inp.unlocked_handle()};
 		return random_access_transmit_impl(outp,uh,std::forward<Args>(args)...);
 	}
 	else
@@ -99,7 +99,7 @@ requires fast_io::random_access_stream<input>
 inline constexpr std::uintmax_t random_access_transmit(output&& outp,offset_type offset,input&& in)
 {
 	std::uintmax_t transmitted{};
-	print(outp,manip::random_access_transmission<input,offset_type,std::uintmax_t>(transmitted,offset,in));
+	print_freestanding(std::forward<output>(outp),manip::random_access_transmission<input,offset_type,std::uintmax_t>(transmitted,offset,in));
 	return transmitted;
 }
 
@@ -108,7 +108,7 @@ requires fast_io::random_access_stream<input>
 inline constexpr sz_type random_access_transmit(output&& outp,offset_type offset,input&& in,sz_type bytes)
 {
 	sz_type transmitted{};
-	print(outp,manip::random_access_transmission_with_size<input,offset_type,std::uintmax_t>(transmitted,offset,in,bytes));
+	print_freestanding(std::forward<output>(outp),manip::random_access_transmission_with_size<input,offset_type,std::uintmax_t>(transmitted,offset,in,bytes));
 	return transmitted;
 }
 

@@ -10,7 +10,7 @@ namespace details::jiaendu
 {
 
 template<std::contiguous_iterator Iter>
-inline void output_unsigned_partial(Iter str,std::uint64_t value)
+inline void output_unsigned_partial(Iter str,std::uint64_t value) noexcept
 {
 	using ch_type = std::remove_cvref_t<decltype(*str)>;
 	constexpr std::size_t bytes4{4*sizeof(ch_type)};
@@ -35,10 +35,11 @@ inline void output_unsigned_partial(Iter str,std::uint64_t value)
 
 template<std::contiguous_iterator Iter,my_unsigned_integral U>
 requires (sizeof(U)<=16)
-inline std::size_t output_unsigned(Iter str,U value)
+inline std::size_t output_unsigned(Iter str,U value) noexcept
 {
 	using ch_type = std::remove_cvref_t<decltype(*str)>;
 	constexpr std::size_t bytes4{4*sizeof(ch_type)};
+	constexpr bool is_ebcdic_exec_charset(exec_charset_is_ebcdic<ch_type>());
 	if constexpr(sizeof(U)==16)
 	{
 		constexpr auto zero39{fast_io::details::compile_pow10<U,38>()};
@@ -49,7 +50,10 @@ inline std::size_t output_unsigned(Iter str,U value)
 			auto remain3{value-v3*zero39};
 			auto v2{remain3/10000000000000000000ULL};
 			std::uint64_t remain{static_cast<std::uint64_t>(remain3-v2*10000000000000000000ULL)};
-			*str=static_cast<char8_t>(v3)+u8'0';
+			if constexpr(is_ebcdic_exec_charset)
+				*str=static_cast<ch_type>(static_cast<char8_t>(v3)+(0xF0));
+			else
+				*str=static_cast<char8_t>(v3)+u8'0';
 			output_unsigned_partial(str+1,static_cast<std::uint64_t>(v2));
 			output_unsigned_partial(str+20,remain);
 			return 39;
@@ -201,7 +205,10 @@ inline std::size_t output_unsigned(Iter str,U value)
 			}
 			else
 			{
-				*str = static_cast<ch_type>(static_cast<char8_t>(value)+u8'0');
+				if constexpr(is_ebcdic_exec_charset)
+					*str = static_cast<ch_type>(static_cast<char8_t>(value)+(0xF0));
+				else
+					*str = static_cast<ch_type>(static_cast<char8_t>(value)+u8'0');
 				return 1;
 			}
 		}
@@ -231,7 +238,10 @@ inline std::size_t output_unsigned(Iter str,U value)
 			}
 			else
 			{
-				*str = static_cast<char8_t>(v2)+u8'0';
+				if constexpr(is_ebcdic_exec_charset)
+					*str = static_cast<ch_type>(static_cast<char8_t>(value)+(0xF0));
+				else
+					*str = static_cast<char8_t>(v2)+u8'0';
 				memcpy(++str,static_tables<ch_type>::table4[remains1].data(),bytes4);
 				memcpy(str += 4,static_tables<ch_type>::table4[remains0].data(),bytes4);
 				return 9;
@@ -284,7 +294,10 @@ inline std::size_t output_unsigned(Iter str,U value)
 			}
 			else
 			{
-				*str = static_cast<char8_t>(value)+u8'0';
+				if constexpr(is_ebcdic_exec_charset)
+					*str = static_cast<ch_type>(static_cast<char8_t>(value)+(0xF0));
+				else
+					*str = static_cast<char8_t>(value)+u8'0';
 				return 1;
 			}
 		}
@@ -338,7 +351,10 @@ inline std::size_t output_unsigned(Iter str,U value)
 			}
 			else
 			{
-				*str = static_cast<ch_type>(static_cast<char8_t>(value)+u8'0');
+				if constexpr(is_ebcdic_exec_charset)
+					*str = static_cast<ch_type>(static_cast<char8_t>(value)+(0xF0));
+				else
+					*str = static_cast<char8_t>(value)+u8'0';
 				return 1;
 			}
 		}
@@ -357,7 +373,10 @@ inline std::size_t output_unsigned(Iter str,U value)
 		}
 		else
 		{
-			*str = static_cast<char8_t>(value)+u8'0';
+			if constexpr(is_ebcdic_exec_charset)
+				*str = static_cast<ch_type>(static_cast<char8_t>(value)+(0xF0));
+			else
+				*str = static_cast<char8_t>(value)+u8'0';
 			return 1;
 		}
 	}
