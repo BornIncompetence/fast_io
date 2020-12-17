@@ -100,8 +100,10 @@ inline constexpr typename floating_traits<floating_type>::mantissa_type me10_to_
 		(((m2 >> shift) + round_up) & ((static_cast<mantissa_type>(1) << floating_trait::mantissa_bits) - 1));
 }
 
+// BornIncompetence
+// bare noexcept will always lead to an exception to terminate regardless of preference of exceptions
 template<bool end_test,std::contiguous_iterator Iter,std::floating_point fp_type>
-inline constexpr Iter real_sto(Iter begin,Iter end,fp_type& t) noexcept
+inline constexpr Iter real_sto(Iter begin, Iter end, fp_type& t) noexcept(!__cpp_exceptions)
 {
 	using char_type = std::iter_value_t<Iter>;
 	using floating_type = std::remove_cvref_t<fp_type>;

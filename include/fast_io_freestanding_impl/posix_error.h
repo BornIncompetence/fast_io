@@ -32,9 +32,12 @@ If execution charset is none-ASCII based charset. Use our own implementation. Th
 			}
 			else
 			{
-#ifdef _GNU_SOURCE
+#if defined(_GNU_SOURCE) && defined(__GLIBC__) && __GLIBC_MINOR__ >= 32
+#include <string.h>
 /*
-Based on man. glibc provides a special function strerrordesc_np() which will not get affected by locale. good! No locale garbage please.
+BornIncompetence
+glibc 2.32 and higher provides a GNU extension function strerrordesc_np() which will report an error string that hasn't been touched by locale.
+Requires -std=gnu++2a flag
 https://man7.org/linux/man-pages/man3/strerrordesc_np.3.html
 */
 				print_freestanding(report,fast_io::chvw(strerrordesc_np(ec)));

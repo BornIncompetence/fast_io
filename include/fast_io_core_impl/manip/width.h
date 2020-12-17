@@ -101,14 +101,18 @@ inline constexpr void width_unhappy_case(output& out,manip::width<T,ch_type> wdt
 		write(out,buffer.beg_ptr,buffer.end_ptr);
 }
 }
-#if 0
+
+// BornIncompetence
+// manip::width fails to compile on MSVC, compiles just fine on Linux GCC 10
+// Instead of disabling altogether, just gate this only to GCC for better error message on MSVC
+#if !defined(__WINNT__) && !defined(_MSC_VER)
 template<fast_io::output_stream output,typename T,std::integral ch_type>
 inline constexpr void print_define(output out,manip::width<T,ch_type> wdt)
 {
-	if constexpr(reserve_output_stream<output>&&reserve_printable<T>)
+	if constexpr(reserve_output_stream<output>&&reserve_printable<ch_type, T>)
 	{
 		using no_cvref = std::remove_cvref_t<T>;
-		constexpr std::size_t rsize{print_reserve_size(io_reserve_type<no_cvref>)};
+		constexpr std::size_t rsize{print_reserve_size(io_reserve_type<ch_type, no_cvref>)};
 		std::size_t size(wdt.width);
 		if(size<rsize)
 			size=rsize;
@@ -123,7 +127,7 @@ inline constexpr void print_define(output out,manip::width<T,ch_type> wdt)
 					return;
 				}
 			}
-			auto printed(print_reserve_define(io_reserve_type<no_cvref>,ptr,wdt.reference));
+			auto printed(print_reserve_define(io_reserve_type<ch_type, no_cvref>,ptr,wdt.reference));
 			std::size_t printed_chars_count(printed-ptr);
 			if(printed_chars_count<wdt.width)[[likely]]
 			{
